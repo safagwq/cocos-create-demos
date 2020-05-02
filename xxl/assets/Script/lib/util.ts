@@ -94,6 +94,7 @@ export const xxlCheck = function (list: Box[], line: number, column: number, che
     xxlCheck.setData(list, line, column)
 
     const clearList = xxlCheck.quickCheck(checkList)
+
     if (clearList.length < 3) {
         return null
     }

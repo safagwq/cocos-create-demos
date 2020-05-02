@@ -145,6 +145,10 @@ export default class Main extends cc.Component {
     }
 
     updateList(updateColumnList: Box[][], unionList: Box[]) {
+        const newCheckListPosition = unionList.map(({ x, y }) => {
+            return { x, y }
+        })
+
         updateColumnList.forEach((list) => {
             const filterEmptyBox = (box) => box.type == 0
             const filterNotEmptyBox = (box) => box.type != 0
@@ -178,9 +182,7 @@ export default class Main extends cc.Component {
         })
 
         setTimeout(() => {
-            const newCheckList = unionList.map((box) => {
-                return this.getBox(box.x, box.y)
-            })
+            const newCheckList = newCheckListPosition.map((p) => this.getBox(p.x, p.y))
             if (this.check(newCheckList) == false) {
                 this.checking = false
             }
