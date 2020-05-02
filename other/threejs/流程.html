@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>three.js 聚光灯</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <style>
+            body {margin: 0px;overflow: hidden;}
+            canvas{height:100% !important;  width:100% !important;  position:relative;  transition:10s linear;  transform:rotate(0deg);  }
+            canvas.deg3600{transform:rotate(3600deg);  }
+
+            #buttons{padding:5px;  position:relative;  z-index:1;  }
+        </style>
+    </head>
+    <body>
+
+
+        <div id='buttons'>
+            <button type='button' onclick='replay()'>重播</button>
+
+        </div>
+
+        <script src="js/three.js"></script>
+        <!-- 控制器 -->
+        <script src='js/OrbitControls.js'></script>
+
+        <script>
+
+
+
+            var scene           // 场景
+            var camera          // 相机
+            var renderer        // 显示器
+            var controls        // 控制器
+            var light
+            var time=0
+            var spotLight
+
+
+            var texture = new THREE.TextureLoader().load( 'textures/hardwood2_diffuse.jpg' )
+            var material = new THREE.MeshBasicMaterial( { map: texture } )
+
+            var ploneTexture = new THREE.TextureLoader().load( 'textures/箱子.墙.jpg' )
+            var ploneMaterial = new THREE.MeshLambertMaterial( { map: ploneTexture } )
+            ploneMaterial.side = THREE.DoubleSide
+
+
+
+            init()
+
+
+            // 环境光
+            scene.add(new THREE.AmbientLight(0x888888))
+
+            // 坐标线
+            // var axes = new THREE.AxisHelper(100)
+            // scene.add(axes)
+
+
+            var obj3D=new THREE.Object3D()
+            obj3D.position.set(-5,-5,-5)
+
+            var ploneZ=getPlane(20,20,'#fff')
+            ploneZ.position.set(10,10,0)
+
+
+
+            var ploneX=getPlane(20,20,'#fff')
+            ploneX.position.set(0,10,10)
+            ploneX.rotation.y=toJsDeg(90)
+
+            var ploneY=getPlane(20,20,'#fff')
+            ploneY.position.set(10,0,10)
+            ploneY.rotation.x=toJsDeg(-90)
+
+            obj3D.add(ploneZ)
+            obj3D.add(ploneX)
+            obj3D.add(ploneY)
+            obj3D.add(getLight(10,20,10))
+
+
+
+            scene.add(obj3D)
+
+
+            
+
+            var obj1=D3Obj(0.2,10,5,3,0,0,'#fff')
+            obj3D.add(obj1)
+
+            var obj2=D3Obj(0.2,10,5,8,0,0,'#fff')
+            obj3D.add(obj2)
+
+            var obj3=D3Obj(5.4,0.2,5,2.9,10,0,'#fff')
+            obj3D.add(obj3)
+
+
+
+            var luoSi1=getLuoSi(0.3,0.3)
+            luoSi1.rotation.x=toJsDeg(-90)
+            luoSi1.position.set(3.75 , 8.5 , 0.2)
+            obj3D.add(luoSi1)
+
+            var luoSi1_1=luoSi1.clone()
+            luoSi1_1.rotation.x=0
+            luoSi1_1.rotation.z=toJsDeg(90)
+            luoSi1_1.position.set(3.3,8.5,0.5)
+            obj3D.add(luoSi1_1)
+
+
+            var luoSi2=luoSi1.clone()
+            luoSi2.position.y=1.5
+            obj3D.add(luoSi2)
+
+            var luoSi2_1=luoSi1_1.clone()
+            luoSi2_1.position.y=1.5
+            obj3D.add(luoSi2_1)
+
+
+            var luoSi3=luoSi1.clone()
+            luoSi3.position.x=7.5
+            obj3D.add(luoSi3)
+
+            var luoSi3_1=luoSi1_1.clone()
+            luoSi3_1.rotation.z=toJsDeg(-90)
+            luoSi3_1.position.set(7.9,8.5,0.5)
+            obj3D.add(luoSi3_1)
+
+
+            var luoSi4=luoSi2.clone()
+            luoSi4.position.x=7.5
+            obj3D.add(luoSi4)
+
+            var luoSi4_1=luoSi3_1.clone()
+            luoSi4_1.rotation.z=toJsDeg(-90)
+            luoSi4_1.position.set(7.9,1.5,0.5)
+            obj3D.add(luoSi4_1)
+
+
+             
+
+
+
+            var md1=getModule()
+            md1.position.set(3.2,8,0)
+            obj3D.add(md1)
+
+            var md2=getModule()
+            md2.position.set(3.2,1,0)
+            obj3D.add(md2)
+
+            var md3=getModule()
+            md3.rotation.y=toJsDeg(-90)
+            md3.position.set(8,8,0)
+            obj3D.add(md3)
+
+            var md4=getModule()
+            md4.rotation.y=toJsDeg(-90)
+            md4.position.set(8,1,0)
+            obj3D.add(md4)
+
+
+            var box=new THREE.CubeGeometry(4.6,9.8,4.8)
+            // 类玻璃材质(反光 , 漫反射)
+            var style=new THREE.MeshPhongMaterial({
+                color:'#fff' , 
+                specular : '#fff' ,
+                shininess : 60 ,
+            })
+
+            var obj4 = new THREE.Mesh(box , style)
+
+            obj4.position.size={
+                length : 4.8,
+                width : 9.8,
+                height : 4.8,
+            }
+
+
+            // 物体会产生阴影
+            obj4.castShadow=true
+            // 物体会显示其他物体的阴影
+            obj4.receiveShadow=true
+
+            objSetPosition(obj4 , 3.2,0.1,10)
+
+            obj3D.add(obj4)
+
+
+
+
+            var aniData=[
+                // 两块板子
+                {
+                    target : [obj1,obj2] ,
+                    valueName : ['position.z'],
+                    start : [7.5],
+                    end : [2.5],
+                    fps : 300
+                },
+                // 顶部板子
+                {
+                    target : [obj3] ,
+                    valueName : ['position.y'],
+                    start : [15],
+                    end : [10.1],
+                    fps : 300
+                },
+                // 固定模块
+                {
+                    target : [md1,md2,md3,md4] ,
+                    valueName : ['position.z'],
+                    start : [5],
+                    end : [0],
+                    fps : 300
+                },
+                // 螺丝钉A组
+                {
+                    target : [luoSi1,luoSi2,luoSi3,luoSi4] ,
+                    valueName : ['position.z','rotation.y'],
+                    start : [1.5,0],
+                    end : [0.2,toJsDeg(1080)],
+                    fps : 200
+                },
+                // 螺丝钉B组
+                {
+                    type : 'sync',
+                    target : [luoSi1_1,luoSi2_1] ,
+                    valueName : ['position.x','rotation.x'],
+                    start : [4.3,0],
+                    end : [3.3,toJsDeg(1080)],
+                    fps : 200
+                },
+
+                // 螺丝钉C组
+                {
+                    target : [luoSi3_1,luoSi4_1] ,
+                    valueName : ['position.x','rotation.x'],
+                    start : [6.9,0],
+                    end : [7.9,toJsDeg(1080)],
+                    fps : 200
+                },
+
+                {
+                    target : [obj4] ,
+                    valueName : ['position.z'],
+                    start : [7.5],
+                    end : [2.5],
+                    fps : 200
+                },
+            ]
+
+
+
+
+            function getAniDataList(){
+                var list=[]
+
+                var objs=[]
+
+
+                aniData.forEach(function(data){
+                    data.target.forEach(function(obj){
+                        objs.push(obj)
+                    })
+
+                    list.push(function (){
+                        data.target.forEach(function(obj){
+                            obj3D.add(obj)
+                        })
+                    })
+
+                    for(var i=0;i<data.fps;i++){
+                        list.push({
+                            target : data.target ,
+                            valueName : data.valueName ,
+                            style : data.start.map(function (value,index){
+                                    return (data.start[index] - data.end[index])/data.fps * (data.fps - i - 1) + data.end[index]
+                                })
+                        })
+                    }
+
+                })
+
+                list.unshift(function (){
+                    objs.forEach(function(obj){
+                        obj3D.remove(obj)
+                    })
+                })
+
+                return list
+            }
+
+
+            var fpsList=getAniDataList()
+
+            function setValueByValuePath(obj , name , style){
+                var names=name.split('.')
+                var newObj=obj
+                for(var i=0;i<names.length;i++){
+                    obj=obj[names[i]]
+
+                    if(typeof obj=='object'){
+                        newObj=obj
+                    }
+                    else{
+                        break
+                    }
+                }
+
+                newObj[names[i]]=style
+            }
+
+            function setValues(styleObj){
+                if(!styleObj){
+                    return
+                }
+
+                if(typeof styleObj=='function'){
+                    return styleObj()
+                }
+
+                styleObj.valueName.forEach(function(name, nameIndex){
+                    styleObj.target.forEach(function(obj){
+
+                        setValueByValuePath(obj , name , styleObj.style[nameIndex] )
+                    })
+                })
+            }
+
+            function frameCallback(){
+                
+                setValues(fpsList[time])
+
+                time++
+                
+                // obj2.rotation.x+=Math.sin(time/50)/100
+
+
+                // if(luoSi4.position.z > -5){
+
+                //     luoSi1.rotation.y+=toJsDeg(6)
+                //     luoSi2.rotation.y+=toJsDeg(6)
+                //     luoSi3.rotation.y+=toJsDeg(6)
+                //     luoSi4.rotation.y+=toJsDeg(6)
+
+
+                //     luoSi1.position.z-=0.04
+                //     luoSi2.position.z-=0.04
+                //     luoSi3.position.z-=0.04
+                //     luoSi4.position.z-=0.04
+                // }
+
+                // objSetPosition(obj4 , 3.2,0.1, 10-time/10 )
+            }
+
+
+            function getModule(){
+                var obj = new THREE.Object3D()
+
+                var m1=D3Obj(1,1,0.1,0,0,0,'#ff0')
+                var m2=D3Obj(0.1,1,1,0,0,0,'#ff0')
+
+                obj.add(m1)
+                obj.add(m2)
+
+                return obj
+            }
+
+
+
+            function getLuoSi(size,height){
+                size = size || 1,
+                height = height || 1
+
+                var obj = new THREE.Object3D()
+
+                // 类玻璃材质(反光 , 漫反射)
+                var style=new THREE.MeshPhongMaterial({
+                    color:'#73777e' , 
+                    specular : '#73777e' ,
+                    shininess : 60 ,
+                })
+
+                var 圆柱=new THREE.CylinderGeometry(0.1*size,0.1*size,0.5*height,20)
+                var 圆柱2 = new THREE.Mesh(圆柱 , style)
+
+                var 螺帽=new THREE.CylinderGeometry(0.3*size,0.3*size,0.2*size,6)
+                var 螺帽2 = new THREE.Mesh(螺帽 , style)
+
+                圆柱2.position.set(0,height/4,0)
+
+
+                // 物体会产生阴影
+                圆柱2.castShadow=true
+                // 物体会显示其他物体的阴影
+                圆柱2.receiveShadow=true
+
+                // 物体会产生阴影
+                螺帽2.castShadow=true
+                // 物体会显示其他物体的阴影
+                螺帽2.receiveShadow=true
+
+
+
+                obj.add(圆柱2)
+                obj.add(螺帽2)
+
+                return obj
+            }
+
+            function getPlane(height,width,color){
+                var size=new THREE.PlaneGeometry(width, height)
+                var obj=new THREE.Mesh(size , ploneMaterial)
+
+                // 物体会显示其他物体的阴影
+                obj.receiveShadow=true
+                return obj
+            }
+
+
+            function getLight(x,y,z,color){
+                // 聚光灯
+                spotLight = new THREE.SpotLight('#f80',0.5)
+                spotLight.position.set(x,y,z)
+                spotLight.target = ploneY
+
+                spotLight.castShadow=true
+
+                spotLight.shadowMapHeight = 2000
+                spotLight.shadowMapWidth = 2000
+
+                return spotLight
+
+                // var lightHelper = new THREE.SpotLightHelper( spotLight )
+                // scene.add(lightHelper)
+            }
+
+            function D3Obj(length,width,height,x,y,z,color){
+                var box=new THREE.CubeGeometry(length,width,height)
+                // 类石料材质(弱反光 , 漫反射)
+                var style=new THREE.MeshLambertMaterial({color:color||'#fff'})
+                // 忽略光效 , 自亮材质
+                // var style=new THREE.MeshBasicMaterial({color:color||'#fff'})
+
+                var obj=new THREE.Mesh(box , style)
+
+                obj.position.size={
+                    length : length,
+                    width : width,
+                    height : height,
+                }
+
+                objSetPosition(obj,x,y,z)
+
+                // 物体会产生阴影
+                obj.castShadow=true
+                // 物体会显示其他物体的阴影
+                obj.receiveShadow=true
+                return obj
+            }
+
+            function objSetPosition(obj,x,y,z){
+                x=x||0
+                y=y||0
+                z=z||0
+
+                if(typeof x=='object'){
+
+                    return
+                }
+
+
+                obj.position.x=obj.position.size.length/2 + x 
+                obj.position.y=obj.position.size.width/2 + y
+                obj.position.z=obj.position.size.height/2 + z                
+            }
+
+            function toJsDeg(deg){
+                return deg * Math.PI/180
+            }
+
+
+
+            function init(){
+
+                scene = new THREE.Scene()
+
+
+                camera = new THREE.PerspectiveCamera(30, window.innerWidth/window.innerHeight, 0.1, 1000)
+                camera.position.z = 50
+
+
+                renderer = new THREE.WebGLRenderer()
+
+                renderer.setSize(window.innerWidth * 2, window.innerHeight * 2)
+
+                // 开启阴影
+                renderer.shadowMapEnabled = true
+
+
+                controls = new THREE.OrbitControls( camera, renderer.domElement )
+                // 使动画循环使用时阻尼或自转 意思是否有惯性
+                controls.enableDamping = true
+                //动态阻尼系数 就是鼠标拖拽旋转灵敏度
+                controls.dampingFactor = 0.25
+                //是否可以缩放
+                controls.enableZoom = true
+                //是否自动旋转
+                controls.autoRotate = false
+                //设置相机距离原点的最远距离
+                controls.minDistance = 10
+                //设置相机距离原点的最远距离
+                controls.maxDistance = 100
+                //是否开启右键拖拽
+                controls.enablePan = true
+
+
+                // 显示器放到网页上
+                document.body.appendChild(renderer.domElement)
+            }
+
+
+
+
+            !(function render() {
+                frameCallback()
+
+                // 拍照场景 , 渲染到显示器上
+                controls.update()
+                renderer.render(scene, camera)
+
+                requestAnimationFrame(render)
+            })()
+
+
+            window.onresize=function (){
+                camera.aspect = window.innerWidth / window.innerHeight
+                camera.updateProjectionMatrix()
+                renderer.setSize( window.innerWidth *1 , window.innerHeight*1 )
+            }
+
+
+
+            function replay(){
+                time=-1
+            }
+        </script>
+
+    </body>
+</html>

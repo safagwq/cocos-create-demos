@@ -1,0 +1,71 @@
+<html>
+<style>
+*{margin: 0;padding: 0;}
+html{height: 100%;}
+body{height: 100%;background: #000; color:#fff; text-shadow:0 0 2px #000;}
+div{height: 100%;background: #fff;}
+</style>
+<body>
+<div>
+</div>
+</body>
+<script>
+/*
+
+	0.谷歌浏览器
+	1.点击开始画图
+	2.右击暂停（暂停状态下右击后退）
+	3.双击（或者F5）重新开始
+	4.F12打开调试界面查看样式
+
+*/
+
+
+var arr=[]
+var d=document.querySelector('div')
+var h=document.body.clientHeight
+var w=document.body.clientWidth
+window.onresize=function () {
+	h=document.body.clientHeight
+	w=document.body.clientWidth
+}
+
+
+document.onclick=click
+document.onmousemove=mousemove
+
+function click (e) {
+	document.oncontextmenu=contextmenu
+	arr.push((e.clientX/w*100)+'% '+(e.clientY/h*100)+'%')
+	d.style['-webkit-clip-path']='polygon('+arr.join(',')+')'
+}
+function mousemove (e) {
+	d.style['-webkit-clip-path']='polygon('+arr.join(',')+','+(e.clientX/w*100)+'% '+(e.clientY/h*100)+'%'+')'
+}
+
+function  contextmenu(e) {
+	e.preventDefault()
+
+	d.style['-webkit-clip-path']='polygon('+arr.join(',')+')'
+	document.onclick=function(){
+		document.onclick=click
+		document.onmousemove=mousemove
+	}
+	document.oncontextmenu=function(e){
+		e.preventDefault()
+		arr.pop()
+		d.style['-webkit-clip-path']='polygon('+arr.join(',')+')'
+		if(!arr.length)
+		d.style['-webkit-clip-path']=''
+	}
+	document.onmousemove=null
+}
+
+document.ondblclick=function(){
+	arr=[]
+	document.onclick=click
+	document.onmousemove=mousemove
+}
+
+</script>
+</html>

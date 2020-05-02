@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <title>音乐游戏demo</title>
+        <!-- prettier-ignore -->
+        <style>
+
+
+        *{box-sizing:border-box;  }
+        body{margin:0;  background:#000;  }
+        html,body{height:100%;  overflow:hidden;  }
+        #app{height:500px;  width:100%;  position:relative;  }
+
+        [v-cloak]{opacity:0;  }
+
+        .keys{position:absolute;  left:0;  bottom:100px;  width:100%;  margin-bottom:-20px;  }
+        .key{position:absolute;  background:url(./img/up.png) center center/100% 100% no-repeat;  height:40px;  width:40px;  left:50%;  bottom:0;  border-radius:50%;  border:2px solid;  font-weight:700;  line-height:36px;  font-size:30px;  text-align:center;  color:#fff;  }
+        .key[data-key='left']{background-image:url(./img/left.png);  margin-left:-90px;  }
+        .key[data-key='up']{background-image:url(./img/up.png);  margin-left:-30px;  }
+        .key[data-key='down']{background-image:url(./img/down.png);  margin-left:30px;  }
+        .key[data-key='right']{background-image:url(./img/right.png);  margin-left:90px;  }
+
+        .key[data-results="A"]{animation:results-A ease 0.6s forwards;  background:none;  color:#ebe087;  }
+        .key[data-results="B"]{animation:results-B ease 0.4s forwards;  background:none;  color:#b3e43b;  }
+        .key[data-results="C"]{animation:results-C ease 0.4s forwards;  background:none;  color:#75e0f2;  }
+        .key[data-results="D"]{animation:results-D ease 0.4s forwards;  background:none;  color:#bd99ff;  }
+        .key[data-results="Z"]{animation:results-Z ease 0.4s forwards;  background:none;  color:#fd4485;  }
+        .key[data-results="-"]{animation:results-- ease 0.2s forwards;  opacity:0.8;  }
+        .key:not([data-results="-"])::before{content:attr(data-results);  }
+
+        .keys.flip .key{animation:none;  }
+        .keys.fixed>.key{opacity:0.5;  }
+
+        .comboNumber{position:absolute;  right:20px;  top:20px;  font-size:30px;  color:#fff;  animation:comboNumber-10 ease 0.3s forwards;  }
+        .comboNumber-max{position:absolute;  right:20px;  top:60px;  font-size:20px;  color:#fff;  }
+        .comboNumber-max.history{top:90px;  }
+        .comboNumber[data-number='0'],
+        .comboNumber[data-number='1']{display:none;  }
+
+        .line{position:absolute;  height:2px;  background:rgba(255,255,255,0.5);  left:50px;  right:50px;  bottom:100px;  }
+        .line-target{height:20px;  width:20px;  top:-9px;  left:0;  margin-left:-9px;  position:absolute;  background:#fff;  border-radius:50%;  opacity:0.7;  }
+        .line-name{color:#fff;  font-size:12px;  padding-top:15px;  display:inline-block;  padding-right:30px;  position:relative;  }
+        .line-name>select{position:absolute;  top:0;  left:0;  height:100%;  width:100%;  opacity:0;  cursor:pointer;  }
+
+        .message{position:absolute;  bottom:0;  width:100%;  text-align:center;  color:#fff;  font-size:14px;  text-align:center;  }
+
+        @keyframes comboNumber-10{
+            0%{transform:scale(1) translateY(0px);  }
+            5%{transform:scale(1.5) translateY(-3px);  }
+            40%{transform:scale(1) translateY(0px);  }
+            100%{transform:scale(1);  }
+        }
+
+
+        @keyframes results-A{
+            0%{opacity:1;  transform:scale(1);  }
+            100%{opacity:0;  transform:scale(3);  }
+        }
+
+        @keyframes results-B{
+            0%{opacity:1;  transform:scale(1);  }
+            100%{opacity:0;  transform:scale(2);  }
+        }
+
+        @keyframes results-C{
+            0%{opacity:1;  transform:scale(1);  }
+            100%{opacity:0;  transform:scale(1.5);  }
+        }
+
+        @keyframes results-D{
+            0%{opacity:1;  transform:scale(1);  }
+            100%{opacity:0;  transform:scale(1.5);  }
+        }
+
+        @keyframes results-Z{
+            0%{opacity:1;  transform:scale(1);  }
+            100%{opacity:0;  transform:scale(1.5);  }
+        }
+
+        @keyframes results--{
+            0%{opacity:1;  }
+            100%{opacity:0;  }
+        }
+    </style>
+    </head>
+    <body>
+        <div id="app" v-cloak>
+            <audio preload="auto" ref="background" :src="__audioPath"></audio>
+
+            <div class="keys fixed">
+                <div class="key" v-for="keyname in ['up','down','left','right']" :data-key="keyname"></div>
+            </div>
+
+            <div class="keys flip" v-if="recordModel">
+                <div class="key" v-for="item in recordKeys" :style="getKeyStyle(item)" data-results="A" :data-key="item.key" :key="item.time"></div>
+            </div>
+
+            <div class="keys">
+                <div class="key" v-for="item in keys" :style="getKeyStyle(item)" :data-results="item.results" :data-key="item.key" :key="item.time"></div>
+            </div>
+
+            <div class="comboNumber" :data-number="comboNumber" :key="comboNumber">Combo {{ comboNumber }}</div>
+            <div class="comboNumber-max">最高连 : {{ comboNumberMax }}</div>
+            <div class="comboNumber-max history">历史最高连 : {{ historyComboNumberMax }}</div>
+
+            <div class="line">
+                <div class="line-target" :style="__playProgress"></div>
+                <div class="line-name">
+                    {{audioName}}
+                    <select v-model="audioName">
+                        <option v-for="name in audioList" :value="name">{{name}}</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- <input @change='uploadAudio($event)' ref='uploader' hidden accept='audio/mp3,audio/ogg' type='file' name='name'/> -->
+            <textarea ref="copyTarget" hidden></textarea>
+
+            <template v-if="message">
+                <p class="message">{{message}}</p>
+            </template>
+            <template v-else>
+                <!-- <br/> 按[u]键可以上传一个自己的音乐 , 按[d]键恢复默认音乐 -->
+                <p class="message" v-if="recordModel">目前没有节奏记录 , 请按[空格]键播放音乐同时 , 按音乐节奏按下[上/下/左/右]或者[W/A/S/D]或者[G/H/J/K]方向键记录自己专属的节奏 !</p>
+                <p class="message" v-else>
+                    [{{audioName}}] 记录了{{keys.length}}个按键记录 , 按[空格]键播放音乐 , 开始音乐游戏吧 ! <br />
+                    按[c]键可以清除记录 , 按[r]键可以重置游戏 , 按[x]键可以分享当前键位记录并分享给好友游玩哦 !
+                </p>
+            </template>
+        </div>
+
+        <script src="https://cdn.bootcss.com/vue/2.5.17/vue.min.js"></script>
+        <script src="src/keyboard.js"></script>
+        <script>
+            var audioData = `data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU3LjE0LjEwMAAAAAAAAAAAAAAA//OAwAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAA0IAf39/f39/f39/f39/f39/f39/f39/f39/f39/f39/f39/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/////////////////////////////////////////////AAAAAExhdmM1Ny4xNQAAAAAAAAAAAAAAACQAAAAAAAAAAANCIBFyawAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/zgMQAJ0n+mUVBwAD4AAgAAAHHIAAAAAAxjGMY3///POnlcbfx/H8fx/H8fx/H8d9y3ff+N25hwF2IroBy2YBCZTmlJnGn2pQZ1m+JxicYm9YCWj+/dvmeeedPK4bf9yHIfx/H8fyMRiWRuNy+np7ef/nnnnnnnnnhhhhhhhhhnnnnn/4YU4PwQd/+oEwfB/E4Pg+D+JwfPicHwfB8HAxicEAQBB3//+oMKnvHVQBFWQVAuMJ8ClE+37chSfpn8mhZwWvfhsoNhQbJ/DkhBwD/84LEJTPbboXjj7AAYBMDACBqktfgYKQaAYRQvAYIAlgYQghgYJjqGpNETDaAMF4WvMQNHhDwMpYpgMJITAMBgJQMEAGwMCQDRNwGEsSAGGUAgLABMnai3xOQWWha8DcQNgQjkPlGZKVa//+bkBKQY2EHB+wgEMakxer9f///JkyLx8yIELOICREY4UiHyhowCwBwu8NWf/WcHSGrR5//8MaiURcpkmOSTRBieWglRZRNEPHKK5O1HKCKFuFyQptQ1UqYtzixIczXgxdWrWvtbP/zgsQZJYQVnA3PQADBe2SKrterNyqwULUUdarRQsKqtbWo4OQBQAIQjAVAuOloZuVVdVXa5VvlagoWpmbn2X9rlTbUVXa9Wb5rZqhmb5XVeG1W5Wv/2b/ZvZv1rVahtVyTVhma9mvrZtm1WihaijrVaKFqFha1NooWooWaVqGX4a5JFXFRVYa1FUxBTUUzLjk5LjVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV`
+
+            var encodeKeyMaps = {
+                l: 'left',
+                r: 'right',
+                u: 'up',
+                d: 'down',
+
+                left: 'l',
+                right: 'r',
+                up: 'u',
+                down: 'd',
+            }
+
+            function encodeRecordKeys(keys) {
+                return keys.map((item) => `${item.time.toFixed(3)}=${encodeKeyMaps[item.key]}`).join('&')
+            }
+            function decodeRecordKeys(text) {
+                if (text == '') {
+                    return []
+                }
+                var keys = text.split('&').map((value) => {
+                    var valueArr = value.split('=')
+                    if (valueArr[0] == 'audioName') {
+                        return {
+                            audioName: decodeURIComponent(valueArr[1]),
+                        }
+                    }
+
+                    return {
+                        time: parseFloat(valueArr[0]),
+                        key: encodeKeyMaps[valueArr[1]],
+                    }
+                })
+
+                return keys
+            }
+
+            var app = new Vue({
+                el: '#app',
+                data() {
+                    this.keydownAudios = new Array(10).fill(() => new Audio()).map((f) => f())
+                    this.keydownAudios.forEach((audio) => {
+                        audio.src = audioData
+                    })
+                    this.gamepadReady = false
+
+                    if (!localStorage.comboNumberMax) {
+                        localStorage.comboNumberMax = '0'
+                    }
+
+                    var audioName = localStorage.selectAudioName || 'calc.mp3'
+                    var keys = []
+                    var query = location.search.replace(/^\?/, '')
+                    if (query) {
+                        keys = decodeRecordKeys(query)
+                        if (keys[0].audioName) {
+                            audioName = keys[0].audioName
+                            keys.shift()
+                        }
+                    } else {
+                        if (!localStorage['recordKeys-' + audioName]) {
+                            localStorage['recordKeys-' + audioName] = ''
+                        }
+                        keys = decodeRecordKeys(localStorage['recordKeys-' + audioName])
+                    }
+
+                    keys.forEach((item) => {
+                        item.results = null
+                    })
+
+                    return {
+                        audioList: ['calc.mp3', '愛言葉.mp3', '初音ミクの激唱.mp3', 'Melt.mp3', '裏表ラバーズ.mp3'],
+                        audioName: audioName,
+                        keys: keys,
+                        recordKeys: [],
+                        keyNow: 0,
+                        playTime: 0,
+                        recordModel: !keys.length,
+                        comboNumber: 0,
+                        comboNumberMax: 0,
+                        historyComboNumberMax: parseInt(localStorage.comboNumberMax),
+                        message: '',
+                    }
+                },
+
+                watch: {
+                    audioName() {
+                        localStorage.selectAudioName = this.audioName
+
+                        if (!localStorage['recordKeys-' + this.audioName]) {
+                            localStorage['recordKeys-' + this.audioName] = ''
+                        }
+                        this.keys = decodeRecordKeys(localStorage['recordKeys-' + this.audioName])
+                        this.recordModel = !this.keys.length
+
+                        this.reset()
+                    },
+                },
+                computed: {
+                    __audioPath() {
+                        return './audio/' + this.audioName
+                    },
+                    __playProgress() {
+                        var progress = this.playTime / (this.bgm ? this.bgm.duration : 1)
+
+                        return {
+                            left: progress * 100 + '%',
+                        }
+                    },
+                },
+
+                methods: {
+                    init() {
+                        this.initControls()
+                        requestAnimationFrame(this.update)
+                    },
+                    initControls() {
+                        this.keyboard = getKeyboard()
+                        this.keyboard.init()
+
+                        window.addEventListener('gamepadconnected', (e) => {
+                            this.message = '手柄已连接! ,[start]可以开始游戏 , [L1]可以重置游戏 , [R1]可以清除记录 , [option]可以复制分享链接 , [home]键刷新页面 '
+                            this.getGamepad = () => {
+                                return navigator.getGamepads()[e.gamepad.index]
+                            }
+                            this.gamepadReady = true
+                        })
+                    },
+                    getKeyStyle(item) {
+                        return {
+                            transform: `translateY(${-(item.time - this.playTime) * 200}px)`,
+                        }
+                    },
+
+                    play() {
+                        this.bgm.play()
+                    },
+                    pause() {
+                        this.bgm.pause()
+                    },
+                    togglePlayStatus() {
+                        if (this.bgm.paused) {
+                            this.play()
+                        } else {
+                            this.pause()
+                        }
+                    },
+                    getPauseKeydownAudio() {
+                        return this.keydownAudios.find((audio) => audio.paused)
+                    },
+                    record(keyname) {
+                        if (this.bgm.paused) {
+                            return
+                        }
+
+                        this.recordKeys.push({
+                            key: keyname,
+                            time: this.bgm.currentTime,
+                        })
+
+                        localStorage['recordKeys-' + this.audioName] = encodeRecordKeys(this.recordKeys)
+                        // localStorage.recordKeys = encodeRecordKeys(this.recordKeys)//JSON.stringify()
+                    },
+                    uploadAudio(e) {
+                        // console.log(URL.createObjectURL(e.target.files[0]))
+                    },
+                    keydown(keyname) {
+                        this.getPauseKeydownAudio().play()
+
+                        if (this.recordModel) {
+                            this.record(keyname)
+                            return
+                        }
+
+                        var target = this.keys[this.keyNow]
+
+                        if (!target) {
+                            return
+                        }
+
+                        var diffTime = Math.abs(target.time - this.bgm.currentTime)
+                        if (diffTime > 0.25) {
+                            return
+                        }
+
+                        this.keyNow++
+
+                        var results = 'A'
+
+                        if (keyname == target.key) {
+                            if (diffTime < 0.04) {
+                                results = 'A'
+                            } else if (diffTime < 0.08) {
+                                results = 'B'
+                            } else if (diffTime < 0.16) {
+                                results = 'C'
+                            } else {
+                                results = 'D'
+                            }
+                        } else {
+                            results = 'Z'
+                        }
+
+                        if (results == 'A' || results == 'B') {
+                            this.comboNumber++
+                            if (this.comboNumberMax < this.comboNumber) {
+                                this.comboNumberMax = this.comboNumber
+                                if (this.comboNumberMax > parseInt(localStorage.comboNumberMax)) {
+                                    localStorage.comboNumberMax = this.comboNumberMax
+                                    this.historyComboNumberMax = this.comboNumberMax
+                                }
+                            }
+                        } else {
+                            this.comboNumber = 0
+                        }
+
+                        target.results = results
+                    },
+
+                    reset() {
+                        this.comboNumber = 0
+                        this.keyNow = 0
+                        this.bgm.currentTime = 0
+                        this.bgm.pause()
+                        this.keys.forEach((item) => {
+                            item.results = null
+                        })
+                    },
+                    share() {
+                        this.message = '已复制分享链接 , 发送好友一起玩吧 !'
+                        this.$refs.copyTarget.style.display = 'block'
+                        this.$refs.copyTarget.value = location.origin + location.pathname + '?' + 'audioName=' + encodeURIComponent(this.audioName) + '&' + encodeRecordKeys(this.keys)
+                        this.$refs.copyTarget.select()
+                        document.execCommand('Copy')
+                        this.$refs.copyTarget.style.display = 'none'
+                    },
+                    checkMissKey() {
+                        var target = this.keys[this.keyNow]
+                        if (target) {
+                            var diffTime = this.bgm.currentTime - target.time
+                            if (diffTime > 0.03) {
+                                target.results = '-'
+                                if (diffTime > 0.25) {
+                                    this.keyNow++
+                                    this.comboNumber = 0
+                                }
+                            }
+                        }
+                    },
+                    update(time) {
+                        this.playTime = this.bgm.currentTime
+
+                        if (this.gamepadReady) {
+                            this.keyboard.setStatueByGamepad(this.getGamepad())
+                        }
+                        this.keyboard.updateKeyboardHistory()
+
+                        if (this.keyboard.checkHotKey('space') == 0) {
+                            this.togglePlayStatus()
+                        }
+
+                        if (this.keyboard.checkHotKey('f5') == 0) {
+                            this.gamepadReady = false
+                            setTimeout(() => {
+                                location.reload()
+                            }, 300)
+                        }
+
+                        if (this.keyboard.checkHotKey('r') == 0 && !this.recordModel) {
+                            this.reset()
+                        }
+
+                        if (this.keyboard.checkHotKey('c') == 0) {
+                            localStorage['recordKeys-' + this.audioName] = ''
+                            this.message = '按键记录已清理 , 页面即将刷新 .'
+                            setTimeout(() => {
+                                location.replace('./')
+                            }, 2000)
+                        }
+
+                        if (this.keyboard.checkHotKey('x') == 0) {
+                            this.share()
+                        }
+
+                        if (this.keyboard.checkHotKey('h') == 0 || this.keyboard.checkHotKey('w') == 0 || this.keyboard.checkHotKey('up') == 0) {
+                            this.keydown('up')
+                        }
+                        if (this.keyboard.checkHotKey('j') == 0 || this.keyboard.checkHotKey('s') == 0 || this.keyboard.checkHotKey('down') == 0) {
+                            this.keydown('down')
+                        }
+                        if (this.keyboard.checkHotKey('g') == 0 || this.keyboard.checkHotKey('a') == 0 || this.keyboard.checkHotKey('left') == 0) {
+                            this.keydown('left')
+                        }
+                        if (this.keyboard.checkHotKey('k') == 0 || this.keyboard.checkHotKey('d') == 0 || this.keyboard.checkHotKey('right') == 0) {
+                            this.keydown('right')
+                        }
+
+                        this.checkMissKey()
+                        requestAnimationFrame(this.update)
+                    },
+                },
+
+                mounted() {
+                    this.bgm = this.$refs.background
+                    this.bgm.volume = 0.3
+
+                    this.init()
+                },
+            })
+        </script>
+    </body>
+</html>

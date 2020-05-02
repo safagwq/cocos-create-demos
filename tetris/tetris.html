@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang='zh'>
+<head>
+    <meta charset='utf-8'/>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>俄罗斯方块 safa</title>
+    <style>
+        *{box-sizing:border-box;  }
+        .body{margin:0 auto;  background:#eee;  position:relative;  border:1px solid #ccc;  pointer-events:none;  }
+        .cell{height:25px;  width:25px;  border:1px solid #ccc;  position:absolute;  }
+        .cell[data-status='1']{background:#666;  }
+        .cell[data-status='2']{background:#000;  }
+        .cell[data-status='3']{background:#000;  animation:cell-flash 0.15s infinite;  }
+        .cell.check{border:2px solid #f00;  }
+        .score{text-align:center;  }
+        .buttons{position:fixed;  bottom:0;  left:0;  right:0;  display:flex;  justify-content:center;  align-items:center;  z-index:1;  }
+        .button{height:50px;  flex-grow:1;  width:80px;  border:1px solid;  }
+
+        @keyframes cell-flash{
+            0%{opacity:0.5;  }
+            100%{opacity:0.8;  }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class='score'>0</div>
+    <div class='body'></div>
+    <div class='buttons'>
+        <button class='button' onclick='moveObj(-1,0)'>左</button>
+        <button class='button' onclick='rotateObj()'>旋转</button>
+        <button class='button' onclick='falling()'>下落</button>
+        <button class='button' onclick='moveObj(1,0)'>右</button>
+    </div>
+
+
+    <script>
+        var gridWidth=10
+        var gridHeight=18
+        var grid = []
+        var allCell = []
+        var obj=null
+        var scoreElement = document.querySelector('.score')
+        var autoFallInterval = null
+
+        var types=[
+            // 直线
+            [
+                [0,1,0,0],
+                [0,1,0,0],
+                [0,1,0,0],
+                [0,1,0,0],
+            ],
+            // 方块
+            [
+                [1,1],
+                [1,1],
+            ],
+            // 凸
+            [
+                [0,0,0],
+                [0,1,0],
+                [1,1,1],
+            ],
+            // L
+            [
+                [1,0,0],
+                [1,0,0],
+                [1,1,0],
+            ],
+            // 反L
+            [
+                [0,0,1],
+                [0,0,1],
+                [0,1,1],
+            ],
+            // Z
+            [
+                [0,0,0],
+                [1,1,0],
+                [0,1,1],
+            ],
+            // 反Z
+            [
+                [0,0,0],
+                [0,1,1],
+                [1,1,0],
+            ],
+        ]
+
+        init()
+        initEvent()
+        start()
+
+        function init(){
+            grid = new Array(gridHeight).fill(null).map(e=>{
+                return new Array(gridWidth).fill(null).map(e=>{
+                    return {
+                        status : 0,
+                        element : getCell()
+                    }
+                })
+            })
+
+            var body=document.querySelector('.body')
+            body.style.height=gridHeight*25+'px'
+            body.style.width=gridWidth*25+'px'
+
+            grid.forEach((line,yIndex)=>{
+                line.forEach((cell,xIndex)=>{
+                    cell.element.style.bottom = yIndex *25  + 'px'
+                    cell.element.style.left = xIndex *25 + 'px'
+                    allCell.push(cell)
+                    body.appendChild(cell.element)
+                })
+            })
+        }
+
+        function initStatus(){
+            grid.forEach((line)=>{
+                line.forEach((cell)=>{
+                    cell.status = 0
+                    cell.element.dataset.status = 0
+                })
+            })
+
+            scoreElement.innerHTML = 0
+        }
+
+        function initEvent(){
+            document.addEventListener('keydown',(e)=>{
+                switch(e.keyCode){
+                    case 38:
+                        rotateObj()
+                    break
+                    case 37:
+                        moveObj(-1,0)
+                    break
+                    case 39:
+                        moveObj(1,0)
+                    break
+                    case 40:
+                        falling()
+                    break
+                }
+            })
+        }
+
+        function start(){
+            obj=getObj()
+            falling()
+            autoFallInterval = setInterval(falling,1000)
+        }
+
+        function falling(){
+
+            if( canSet( obj.x, obj.y-1 , obj.type) ){
+                obj.y--
+                render()
+                return 
+            }
+            else{
+                fixedObj()
+                obj=getObj()
+                render()
+            }
+        }
+
+        function fixedObj(){
+            obj.type.forEach((line,y)=>{
+                line.forEach((status,x)=>{
+                    if(grid[obj.y+y] && grid[obj.y+y][obj.x+x]){
+                        if( grid[obj.y+y][obj.x+x].status==1 ){
+                            grid[obj.y+y][obj.x+x].status = 2
+                            grid[obj.y+y][obj.x+x].element.dataset.status = 2
+                        }
+                    }
+                })
+            })
+
+            if(checkGameOver()){
+                alert('game over !')
+                initStatus()
+                return
+            }
+
+            checkFullLine()
+        }
+
+        function checkGameOver(){
+            var type=obj.type
+            var objBottom = type.findIndex(line=>line.includes(1))
+            var objTop = objBottom
+
+            for(var i=objBottom;i<type.length;i++){
+                if(type[i].some(status=>status==1)){
+                    objTop = i
+                }
+            }
+
+            return obj.y + objTop > gridHeight -1
+        }
+
+        function checkFullLine(){
+            var fullLines = grid.filter((line)=> line.every(cell=>cell.status==2) )
+
+            if(fullLines.length){
+                clearInterval(autoFallInterval)
+                scoreElement.innerHTML = parseInt(scoreElement.innerHTML) + Math.max( fullLines.length*fullLines.length - 1 , 1 )
+
+                fullLines.forEach((line)=>{
+                    line.forEach((cell)=>{
+                        cell.status = 3
+                        cell.element.dataset.status = 3
+                    })
+                })
+
+                setTimeout(clearFullLine,500)
+            }
+        }
+
+        function clearFullLine(){
+            var fullLineIndex = getFirstFullLineIndex()
+
+            while(fullLineIndex!=-1){
+                for(var i=fullLineIndex;i<gridHeight;i++){
+                    grid[i].forEach((cell,index)=>{
+                        var nextLine = grid[i+1]
+                        cell.status = nextLine ? nextLine[index].status : 0
+                        cell.element.dataset.status = cell.status
+                    })
+                }
+                fullLineIndex = getFirstFullLineIndex()
+            }
+
+            autoFallInterval = setInterval(falling,1000)
+        }
+
+        function getFirstFullLineIndex(){
+            return grid.findIndex((line)=> line.every(cell=>cell.status==3) )
+        }
+
+        function render(){
+
+            allCell.filter(cell=>cell.status<2).forEach((cell)=>{
+                cell.status = 0
+            })
+
+            obj.type.forEach((line,y)=>{
+                line.forEach((status,x)=>{
+                    if(status==1 && grid[obj.y+y] && grid[obj.y+y][obj.x+x]){
+                        grid[obj.y+y][obj.x+x].status = status
+                    }
+                })
+            })
+
+            allCell.forEach((cell)=>{
+                cell.element.dataset.status = cell.status
+            })
+        }
+
+        function getObj(){
+            var type= types[ parseInt( Math.random()*types.length ) ] 
+            // var type= types[ 0 ] 
+            return {
+                x : parseInt( (gridWidth-type.length)/2 ),
+                y : gridHeight ,
+                type : JSON.parse(JSON.stringify( type )).reverse()
+            }
+        }
+
+        function moveObj(x,y){
+            if(canSet(obj.x+x, obj.y+y , obj.type)){
+                obj.x+=x
+                obj.y+=y
+                render()
+            }
+        }
+
+        function rotateObj(){
+            if(canRotate()){
+                obj.type = rotateArray(obj.type)
+                render()
+            }
+        }
+
+        function canRotate(){
+            var rotateType = rotateArray(obj.type)
+            return canSet(obj.x, obj.y , rotateType)
+        }
+
+        function isFoul(vX,vY,type){
+            var minBottom = -type.findIndex(line=>line.includes(1))
+            if(vY<minBottom){
+                return true
+            }
+
+            var minLeft = -Math.min( ...type.map(line=>line.indexOf(1)).filter(index=>index!=-1) )
+            if(vX<minLeft){
+                return true
+            }
+
+            var maxLeft = gridWidth -1 -Math.max( ...type.map(line=>line.lastIndexOf(1)).filter(index=>index!=-1) )
+            if(vX>maxLeft){
+                return true
+            }
+        }
+
+        function canSet(vX,vY,type){
+            if( isFoul(vX,vY,type) ){
+                return false
+            }
+
+            allCell.forEach((cell)=>{
+                cell.element.classList.remove('check')
+            })
+
+            return type.every((line,y)=>{
+                return line.every((status,x)=>{
+                    if(status==1 && grid[vY+y] && grid[vY+y][vX+x]){
+
+                        grid[vY+y][vX+x].element.classList.add('check')
+
+                        return grid[vY+y][vX+x].status != 2
+                    }
+                    return true
+                })
+            })
+        }
+
+        function rotateArray(arr){
+            var outArr = new Array(arr[0].length).fill(0).map(e=>new Array(arr.length))
+
+            for(var i=0,i2=arr.length-1; i<arr.length ; i++,i2--){
+                for(var i3=0;i3<arr[1].length;i3++){
+                    outArr[i3][i2] = arr[i][i3]
+                }
+            }
+            return outArr
+        }
+
+
+        function getCell(){
+            var cell=document.createElement('div')
+            cell.classList.add('cell')
+            return cell
+        }
+
+    </script>
+</body>
+</html>

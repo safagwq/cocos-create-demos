@@ -1,0 +1,131 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>无标题</title>
+<style>
+body{ background: #888;}
+#rgb{ position: absolute; top: 100px;left: 100px;}
+#rgb>[d1]{position: absolute;left: 330px;top: 0px;width: 50px;height: 100px;background:linear-gradient(#f00 0%,#f0f 16.7%,#00f 33.3%,#0ff 50%,#0f0 66.7%,#ff0 83.3%,#f00 100%);}
+#rgb>[d1]>div{ display: block; height: 16px; width:12px;  position: absolute;margin-top: -8px;left:-12px; background: #fff;	-webkit-clip-path: polygon(0 0, 100% 50%,0 100%);}
+#rgb>[d2]{position: absolute;left:0px;top:0;width: 300px;height: 100px;	background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,1)),linear-gradient(90deg,rgba(255,255,255,1),rgba(255,255,255,0));	background-color: #f00;}
+#rgb>[d2]>div{display: block; height: 8px;width: 8px; position: absolute; margin:-6px; border:2px solid #fff;}
+</style>
+<script>
+window.onload=function(){
+	colorSetGet([255,150,0]);
+};
+
+function colorSetGet(ic){
+	var c=document.querySelector('#rgb')
+	c.d1=document.querySelector('#rgb>[d1]')
+	c.d2=document.querySelector('#rgb>[d2]')
+	c.s1=document.querySelector('#rgb>[d1]>div')
+	c.s2=document.querySelector('#rgb>[d2]>div')
+
+	c.y1=0;
+	c.x2=0;
+	c.y2=0;
+
+	c.y1max=c.d1.scrollHeight
+	c.x2max=c.d2.scrollWidth
+	c.y2max=c.d2.scrollHeight
+
+	c.color=[255,0,0]
+	c.color2=[255,0,0]
+
+	c.sx=c.offsetLeft;
+	c.sy=c.offsetTop;
+
+
+	c.d1.onmousedown=function(e){
+		d1(e)
+		document.onmousemove=d1
+		document.onmouseup=function(){
+			document.onmousemove=null
+			document.onmouseup=null
+		}
+	}
+
+	c.d2.onmousedown=function(e){
+		d2(e)
+		document.onmousemove=d2
+		document.onmouseup=function(){
+			document.onmousemove=null
+			document.onmouseup=null
+		}
+	}
+
+
+
+	function d1(e){
+		c.y1=e.clientY - c.sy
+
+		if(c.y1<0)c.y1=0
+		if(c.y1>c.y1max)c.y1=c.y1max
+
+		c.s1.style.top=c.y1 + 'px'
+		c.color=y_color(c.y1/c.y1max)
+
+		c.color2=color000(colorFFF(c.color,c.x2/c.x2max),c.y2/c.y2max)
+		c.d2.style.backgroundColor='rgb('+c.color[0]+","+c.color[1]+","+c.color[2]+")"
+		colorSet(c.color2)
+	}
+
+	function d2(e){
+		c.x2=e.clientX-c.sx;
+		c.y2=e.clientY-c.sy;
+
+		if(c.y2<0)c.y2=0
+		if(c.y2>c.y2max)c.y2=c.y2max
+
+		if(c.x2<0)c.x2=0
+		if(c.x2>c.x2max)c.x2=c.x2max
+
+
+		c.s2.style.top=c.y2+'px'
+		c.s2.style.left=c.x2+'px'
+		c.x2=c.x2max-c.x2
+		
+
+		c.color2=color000(colorFFF(c.color,c.x2/c.x2max),c.y2/c.y2max)
+		colorSet(c.color2);
+	}
+
+
+
+	function colorSet(color){document.body.style.background='rgb('+color[0]+","+color[1]+","+color[2]+")"}
+	//输入选色块的百分比，返回基本颜色
+	function y_color(y){
+		if(y<=1/6)	/*红-紫*/	return [255,0,parseInt(((y-1/6)/(1/6))*255+255)]
+		if(y<=1/3)	/*紫-蓝*/	return [parseInt(-(y-1/3)/(1/6)*255),0,255]
+		if(y<=1/2)	/*蓝-青*/	return [0,parseInt(((y-1/2)/(1/6))*255+255),255]
+		if(y<=2/3)	/*青-绿*/	return [0,255,parseInt(-((y-2/3)/(1/6))*255)]
+		if(y<=5/6)	/*绿-黄*/	return [parseInt(((y-5/6)/(1/6))*255+255),255,0]
+				/*黄-红*/	return [255,parseInt(-((y-1)/(1/6))*255),0]
+	}
+
+	//输入横向比率和基本颜色，返回横向计算后的颜色
+	function colorFFF(n,m){
+		return 	[
+				parseInt(n[0]+(255-n[0])*m),
+				parseInt(n[1]+(255-n[1])*m),
+				parseInt(n[2]+(255-n[2])*m)
+			]
+	}
+	//输入纵向比率和基本颜色，返回纵向计算后的颜色
+	function color000(n,m){
+		return	[
+				parseInt((1-m)*n[0]),
+				parseInt((1-m)*n[1]),
+				parseInt((1-m)*n[2])
+			]
+	}
+}
+
+</script>
+</head>
+<body>
+	<div id='rgb'><div d1><div></div></div><div d2><div></div></div></div>
+</body>
+</html>

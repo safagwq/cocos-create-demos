@@ -1,0 +1,706 @@
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<style>
+    *{box-sizing:border-box;  }
+    body {
+      background: #333;
+    }
+
+    #gameDiv{height:450px;  width:800px;  background:#000;  position:fixed;  top:0;  left:0;  right:0;  bottom:0;  margin:auto;  }
+    #gameDiv div{position:absolute;  }
+
+    div.active{border:1px solid #fff;  }
+</style>
+</head>
+<body>
+
+    <div id='gameDiv'>
+
+        
+    </div>
+
+<script>
+    var keyboard=(()=>{
+
+        var direction={
+            x : 0,
+            y : 0,
+        }
+
+        var keyDownMap={
+            "0": false,
+            "1": false,
+            "2": false,
+            "3": false,
+            "4": false,
+            "5": false,
+            "6": false,
+            "7": false,
+            "8": false,
+            "9": false,
+            "none": false,
+            "back": false,
+            "menu": false,
+            "backspace": false,
+            "tab": false,
+            "enter": false,
+            "shift": false,
+            "ctrl": false,
+            "alt": false,
+            "pause": false,
+            "capslock": false,
+            "escape": false,
+            "space": false,
+            "pageup": false,
+            "pagedown": false,
+            "end": false,
+            "home": false,
+            "left": false,
+            "up": false,
+            "right": false,
+            "down": false,
+            "select": false,
+            "insert": false,
+            "Delete": false,
+            "a": false,
+            "b": false,
+            "c": false,
+            "d": false,
+            "e": false,
+            "f": false,
+            "g": false,
+            "h": false,
+            "i": false,
+            "j": false,
+            "k": false,
+            "l": false,
+            "m": false,
+            "n": false,
+            "o": false,
+            "p": false,
+            "q": false,
+            "r": false,
+            "s": false,
+            "t": false,
+            "u": false,
+            "v": false,
+            "w": false,
+            "x": false,
+            "y": false,
+            "z": false,
+            "num0": false,
+            "num1": false,
+            "num2": false,
+            "num3": false,
+            "num4": false,
+            "num5": false,
+            "num6": false,
+            "num7": false,
+            "num8": false,
+            "num9": false,
+            "*": false,
+            "+": false,
+            "-": false,
+            "numdel": false,
+            "/": false,
+            "f1": false,
+            "f2": false,
+            "f3": false,
+            "f4": false,
+            "f5": false,
+            "f6": false,
+            "f7": false,
+            "f8": false,
+            "f9": false,
+            "f10": false,
+            "f11": false,
+            "f12": false,
+            "numlock": false,
+            "scrolllock": false,
+            ";": false,
+            "semicolon": false,
+            "equal": false,
+            "=": false,
+            ",": false,
+            "comma": false,
+            "dash": false,
+            ".": false,
+            "period": false,
+            "forwardslash": false,
+            "grave": false,
+            "[": false,
+            "openbracket": false,
+            "backslash": false,
+            "]": false,
+            "closebracket": false,
+            "quote": false,
+            "dpadLeft": false,
+            "dpadRight": false,
+            "dpadUp": false,
+            "dpadDown": false,
+            "dpadCenter": false
+        }
+        var keyCodeMap={
+            "0": "none",
+            "6": "back",
+            "8": "backspace",
+            "9": "tab",
+            "13": "enter",
+            "16": "shift",
+            "17": "ctrl",
+            "18": "alt",
+            "19": "pause",
+            "20": "capslock",
+            "27": "escape",
+            "32": "space",
+            "33": "pageup",
+            "34": "pagedown",
+            "35": "end",
+            "36": "home",
+            "37": "left",
+            "38": "up",
+            "39": "right",
+            "40": "down",
+            "41": "select",
+            "45": "insert",
+            "46": "Delete",
+            "48": "0",
+            "49": "1",
+            "50": "2",
+            "51": "3",
+            "52": "4",
+            "53": "5",
+            "54": "6",
+            "55": "7",
+            "56": "8",
+            "57": "9",
+            "65": "a",
+            "66": "b",
+            "67": "c",
+            "68": "d",
+            "69": "e",
+            "70": "f",
+            "71": "g",
+            "72": "h",
+            "73": "i",
+            "74": "j",
+            "75": "k",
+            "76": "l",
+            "77": "m",
+            "78": "n",
+            "79": "o",
+            "80": "p",
+            "81": "q",
+            "82": "r",
+            "83": "s",
+            "84": "t",
+            "85": "u",
+            "86": "v",
+            "87": "w",
+            "88": "x",
+            "89": "y",
+            "90": "z",
+            "96": "num0",
+            "97": "num1",
+            "98": "num2",
+            "99": "num3",
+            "100": "num4",
+            "101": "num5",
+            "102": "num6",
+            "103": "num7",
+            "104": "num8",
+            "105": "num9",
+            "106": "*",
+            "107": "+",
+            "109": "-",
+            "110": "numdel",
+            "111": "/",
+            "112": "f1",
+            "113": "f2",
+            "114": "f3",
+            "115": "f4",
+            "116": "f5",
+            "117": "f6",
+            "118": "f7",
+            "119": "f8",
+            "120": "f9",
+            "121": "f10",
+            "122": "f11",
+            "123": "f12",
+            "144": "numlock",
+            "145": "scrolllock",
+            "186": "semicolon",
+            "187": "=",
+            "188": "comma",
+            "189": "dash",
+            "190": "period",
+            "191": "forwardslash",
+            "192": "grave",
+            "219": "openbracket",
+            "220": "backslash",
+            "221": "closebracket",
+            "222": "quote",
+            "1000": "dpadLeft",
+            "1001": "dpadRight",
+            "1003": "dpadUp",
+            "1004": "dpadDown",
+            "1005": "dpadCenter"
+        }
+        function onKeyDown(keycode){
+            var keyName=keyCodeMap[keycode]
+            if(keyDownMap[keyName]){
+                return
+            }
+
+            keyDownMap[keyName]=true
+
+            if(keyName=='r'){
+                location.reload()
+            }
+
+            switch(keyName){
+                case 'right':
+                    direction.x=1
+                    break;
+                case 'left':
+                    direction.x=-1
+                    break;
+                case 'up':
+                    direction.y=1
+                    break;
+                case 'down':
+                    direction.y=-1
+                    break;
+                case 'space':
+                    break;
+            }
+        }
+        function onKeyUp(keycode){
+            var keyName=keyCodeMap[keycode]
+            keyDownMap[keyName]=false
+
+            if(keyDownMap.right)direction.x=1
+            if(keyDownMap.left)direction.x=-1
+            if(keyDownMap.up)direction.y=1
+            if(keyDownMap.bottom)direction.bottom=-1
+
+            if(!keyDownMap.right && !keyDownMap.left){
+                direction.x=0
+            }
+            if(!keyDownMap.up && !keyDownMap.bottom){
+                direction.y=0
+            }
+        }
+
+        return {
+            onKeyDown , onKeyUp , direction , keyDownMap
+        }
+    })()
+    
+</script>
+<script>
+
+
+var fps=60
+
+var map=` 
+x
+x
+x
+x
+x
+x
+x             !
+xxxxxxxxxx   xx         x     x  o 
+x!!!!!!xx     xx!!!!!!!!xx    x!!!!
+x!!!!!xx       xxxxxxxxxx     x!!!!
+x!!!!!x    o                 xx!!!!
+x!!!!!x                     xx!!!!!
+x!!!!!xxxxxxxxxxxxxxxxxxxxxxx!!!!!!
+x!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!xx
+`
+
+var gridSize = 20
+
+class Div{
+    constructor(w=20,h=20,x=0,y=0,color=parseInt(Math.random() * 256*256*256).toString(16) ) {
+
+        this.div = document.createElement('div')
+        this.color=color
+        this.w=w
+        this.h=h
+        this.x=x
+        this.y=y
+
+        this.updateStyle()
+    }
+
+    setColor(color){
+        this.color=color
+        this.div.style.backgroundColor='#'+this.color
+    }
+
+    updateStyle(){
+        this.div.style.width = this.w+'px'
+        this.div.style.height = this.h+'px'
+        this.div.style.left = this.x+'px'
+        this.div.style.bottom = this.y+'px'
+        this.div.style.backgroundColor='#'+this.color
+    }
+
+    addChild(box){
+        this.div.append(box.div)
+    }
+}
+
+
+class World extends Div{
+    grid = []
+    gridDiv = []
+    gridHeight = 0
+    gridWidth = 0
+
+    constructor(map) {
+        super(800 , 450)
+
+        window.world = this
+
+        var grid = map.split('\n').reverse()
+        var gridWidths = grid.map(line=>line.length)
+        var maxWidth = Math.max(...gridWidths)
+
+        grid = grid.map(line=>line.padEnd(maxWidth,' ').split(''))
+
+        this.grid = grid
+        this.gridHeight = grid.length
+        this.gridWidth = grid[0].length
+
+        this.list = []
+        this.setColor('000')
+        this.initMap()
+
+        gameDiv.innerHTML = ''
+        gameDiv.append(this.div)
+    }
+
+    initMap(){
+        var map = new Div(0,0)
+
+        this.grid.forEach((line,lineIndex)=>{
+            var lineDiv=[]
+            line.forEach((cell,cellIndex)=>{
+                if(cell=='x'){
+                    var div=new Div(gridSize , gridSize , cellIndex*gridSize , lineIndex*gridSize , '999')
+                    lineDiv.push(div)
+                    map.addChild(div)
+                    return
+                }
+                if(cell=='!'){
+                    var div=new Div(gridSize , gridSize , cellIndex*gridSize , lineIndex*gridSize , 'f00')
+                    lineDiv.push(div)
+                    map.addChild(div)
+                    return
+                }
+
+                lineDiv.push(null)
+            })
+            this.gridDiv.push(lineDiv)
+        })
+        this.div.append(map.div)
+    }
+
+    update(){
+        this.list.forEach((box)=>{
+            box.update()
+        })
+    }
+
+    getRectCells(x,y,w,h){
+        x/=gridSize
+        y/=gridSize
+        w/=gridSize
+        h/=gridSize
+
+        var cells = []
+
+        var xStart = Math.floor(x)
+        var xEnd = Math.ceil(x + w)
+        var yStart = Math.floor(y)
+        var yEnd = Math.ceil(y + h)
+
+        for (var y = yStart; y < yEnd; y++) {
+            for (var x = xStart; x < xEnd; x++) {
+                if(this.grid[y] && this.grid[y][x]){
+
+                    if(this.gridDiv[y][x]){
+                        this.gridDiv[y][x].div.classList.add('active')
+                    }
+
+                    cells.push({
+                        type: this.grid[y][x],
+                        x : x,
+                        y : y
+                    })
+                }
+            }
+        }
+
+        return cells
+    }
+
+    addChild(box){
+        this.div.append(box.div)
+        this.list.push(box)
+        box.world = this
+    }
+}
+
+
+class Box extends Div{
+    constructor(options) {
+
+        super()
+
+        this.speedX = 0
+        this.speedY = 0
+        this.accelerationX = 0
+        this.accelerationY = 0
+
+        Object.assign(this,options)
+        this.updateStyle()
+    }
+
+    getInRect(box){
+        var x1=this.x,
+            y1=this.y,
+            x2=this.x+this.w,
+            y2=this.y+this.h,
+
+            x3=box.x,
+            y3=box.y,
+            x4=box.x+box.w,
+            y4=box.y+box.h
+
+        return InRect(x1,y1,x2,y2,x3,y3,x4,y4)
+    }
+
+    // getCenter(){
+    //     return {x : this.x+this.w/2  , y:this.y + this.h/2 }
+    // }
+
+    // getInRectMore(rect){
+    //     var center = this.getCenter()
+    //     var rectCenter = this.getCenter.call(rect)
+
+    //     var directions=[]
+
+    //     if(center.x<rectCenter.x){
+    //         directions.push('right')
+    //     }
+    //     if(center.x>rectCenter.x){
+    //         directions.push('left')
+    //     }
+    //     if(center.y<rectCenter.y){
+    //         directions.push('up')
+    //     }
+    //     if(center.y>rectCenter.y){
+    //         directions.push('down')
+    //     }
+
+    //     return {
+    //         directions : directions
+    //     }
+    // }
+
+    update(){
+        this.speedX += this.accelerationX*1/60
+        this.speedY += this.accelerationY*1/60
+
+        this.x += this.speedX
+        this.y += this.speedY
+        this.updateStyle()
+    }
+}
+
+class FixedBox extends Box{
+    constructor(options){
+        super(options)
+    }
+    update(){}
+}
+
+class MoveBox extends Box{
+    constructor(options){
+        super(options)
+        this.accelerationY = -2000
+        this.accelerationX = 0
+        this.maxX = 800
+        this.maxY = 800
+    }
+
+    update(){
+
+        this.onUpdate && this.onUpdate()
+
+        this.speedX += this.accelerationX*1/60
+        this.speedY += this.accelerationY*1/60
+
+
+        if(Math.abs(this.speedX)>this.maxX){
+            this.speedX = this.speedX>0?this.maxX:-this.maxX
+        }
+        if(Math.abs(this.speedY)>this.maxY){
+            this.speedY = this.speedY>0?this.maxY:-this.maxY
+        }
+
+        this.y+=this.speedY*1/60
+        this.world.getRectCells(this.x,this.y,this.w,this.h).forEach((cell)=>{
+            if(cell.type=='!'){
+                this.world.scene.gameover()
+            }
+
+            if(cell.type=='x'){
+                var inRect = this.getInRect({ x:cell.x*gridSize , y:cell.y*gridSize , h:gridSize  , w: gridSize })
+                if( inRect ){
+
+                    if(this.speedY>0){
+                        this.speedY = 0
+                        this.y = cell.y*gridSize-this.h
+                    }
+                    else if(this.speedY<0){
+                        this.speedY = 0
+                        this.y = cell.y*gridSize+gridSize
+                    }
+                }
+            }
+        })
+
+
+        this.x+=this.speedX*1/60
+        this.world.getRectCells(this.x,this.y,this.w,this.h).forEach((cell)=>{
+            if(cell.type=='!'){
+                this.world.scene.gameover()
+            }
+
+            if(cell.type=='x'){
+                var inRect = this.getInRect({ x:cell.x*gridSize , y:cell.y*gridSize , h:gridSize  , w: gridSize })
+                if( inRect ){
+                    if(this.speedX>0){
+                        this.x = cell.x*gridSize-this.w
+                    }
+                    else if(this.speedX<0){
+                        this.x = cell.x*gridSize+gridSize
+                    }
+                }
+            }
+        })
+
+        this.updateStyle()
+        if(this.world.scene._gameover){
+            return
+        }
+    }
+}
+
+class Player extends MoveBox{
+    constructor(){
+        super({ w:30 , h:40 , x:30 , y:200, color:'00ff00' })
+        window.player = this
+    }
+
+    onUpdate(){
+        if(keyboard.keyDownMap.up || keyboard.keyDownMap.c){
+            this.speedY = 500
+        }
+        this.speedX = keyboard.direction.x * 300
+    }
+}
+
+
+
+class MarioLayer{
+
+    world = null
+    player = null
+    _gameover = false
+
+    constructor(){
+
+        this.initWorld()
+        this.initPlayer()
+        this.initEvents()
+        this.scheduleUpdate()
+    }
+
+    initWorld(){
+        this.world = new World(map)
+        this.world.scene = this
+    }
+
+    initPlayer(){
+        this.player = new Player()
+        this.world.addChild(this.player)
+    }
+
+    initEvents(){
+        document.onkeydown=(e)=>{
+            keyboard.onKeyDown(e.keyCode)
+        }
+        document.onkeyup=(e)=>{
+            keyboard.onKeyUp(e.keyCode)
+        }
+    }
+
+    scheduleUpdate(){
+        var _update=()=>{
+            document.querySelectorAll('.active').forEach((el)=>{
+                el.classList.remove('active')
+            })
+            this.update()
+
+            if(this._gameover){
+                return
+            }
+
+            setTimeout(_update,1000/fps)
+        }
+        setTimeout(_update,1000/fps)
+    }
+
+
+
+    gameover(){
+        this._gameover = true
+    }
+
+    update(){
+        this.world.update()
+    }
+}
+
+
+function InRect(x1,y1,x2,y2,x3,y3,x4,y4){
+
+    var rect = [Math.max(x1,x3),Math.max(y1,y3),Math.min(x2,x4),Math.min(y2,y4)]
+    if(rect[0]>rect[2]||rect[1]>rect[3]) {
+        return false
+    }
+
+    var result = { x:rect[0] , y:rect[1] , w: rect[2]-rect[0] , h: rect[3]-rect[1] }
+
+    if(result.w==0 && result.h==0){
+        return false
+    }
+    return result
+}
+
+new MarioLayer()
+
+</script>
+
+</body>
+</html>

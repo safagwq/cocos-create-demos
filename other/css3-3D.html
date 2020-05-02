@@ -1,0 +1,307 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="format-detection" content="tephone=no,email=no,date=no,address=no">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+<title>CSS3 3D空间</title>
+<style>
+
+*{
+    -webkit-user-select:none;  
+    user-select:none;
+}
+body{
+    background:#000;
+}
+input {
+    height:30px;
+    min-width:60px;
+    margin:10px;
+}
+#视窗{
+    width:100%;
+    height:500px;
+    margin:10% auto;
+    margin-bottom:0;
+    overflow:hidden;
+    position:relative;
+}
+#视窗 img{
+    display:block;
+    height:2px;
+    width:2px;
+    background:#fff;
+    position:absolute;
+    left:50%;
+    bottom:50px;
+}
+#舞台{
+    position:absolute;
+    left:50%;
+    bottom:0px;
+    width:1px;
+    height:1px;
+}
+#舞台 *{
+    transform-style:preserve-3d;
+}
+#模块{
+    height:1px;
+    width:1px;
+    position:absolute;
+    bottom:50px;
+}
+
+#diban{
+    position:absolute;
+    left:0px;
+    bottom:0px;
+    -webkit-transform-origin:50% 100%;
+    background:#69F;
+    background-size:100%;
+    height:2000px;
+    width:2000px;
+}
+#diban>div>div{
+    position:absolute;
+    left:0px;
+    top:0px;
+    height:500px;
+    width:200px;
+
+    -webkit-transform-origin:0% 0%;
+    
+}
+#diban>div:nth-child(1) div:nth-child(2n-1){
+    background:#fff;
+}
+#diban>div:nth-child(1) div:nth-child(2n){
+    background:#666;
+}
+
+#diban>div:nth-child(2){
+    position:absolute;
+    left:1000px;
+    top:0px;
+}
+#diban>div:nth-child(2) div:nth-child(2n-1){
+    background:#fff;
+}
+#diban>div:nth-child(2) div:nth-child(2n){
+    background:#666;
+}
+
+
+.nav{position:fixed;  bottom:100px;  right:0;  left:0;  text-align:center;  font:20px/4 'Microsoft YaHei';  width:80px;  border-radius:50%;  background:rgba(255,255,255,0.3);  margin:auto;  }
+.nav.down{background:rgba(255,255,255,0.6);  }
+#t{transform:translate(0,-70%);  }
+#b{transform:translate(0,70%);  }
+#l{transform:translate(-70%,0);  }
+#r{transform:translate(70%,0);  }
+
+
+
+</style>
+</head>
+
+<body>
+<div  id="视窗">
+    <div id="舞台">
+        <div id="模块">
+            <div id="diban">
+                <div id="d0"><script>for(i=0;i<12;i++){document.write('<div></div>')}</script></div>
+                <div id="d1"><script>for(i=0;i<12;i++){document.write('<div></div>')}</script></div>
+            </div>
+        </div>
+    </div>
+    <img id="bai">
+</div>
+
+
+<div class='nav' id='t' data-code='38'>上</div>
+<div class='nav' id='b' data-code='40'>下</div>
+<div class='nav' id='l' data-code='37'>左</div>
+<div class='nav' id='r' data-code='39'>右</div>
+
+
+
+<script>
+function sCSS(元素,样式集合){
+    for(样式 in 样式集合){
+        元素.style['-webkit-'+样式]=样式集合[样式];
+    }
+}
+
+
+var 视点=200;
+var 白点=50;
+
+    var 模块=document.getElementById('模块');
+    var bai=document.getElementById('bai');
+    
+    模块.ry=0;
+    模块.tx=0;
+    模块.tz=0;
+    
+    var diban=document.getElementById('diban');
+    var d0=document.getElementById('d0').getElementsByTagName("div");
+    var d1=document.getElementById('d1').getElementsByTagName("div");
+
+    
+
+    for(i=0;i<12;i++){
+        sCSS(d0[i],{'transform':'rotateX(-90deg) translateY(-500px) translateZ(500px) translateX(500px) rotateY('+(i*30)+'deg)'})
+        sCSS(d1[i],{'transform':'rotateX(-90deg) translateY(-500px) translateZ(500px) translateX(500px) rotateY('+(i*30)+'deg)'})
+    }
+    
+    sCSS(document.getElementById('舞台'),{'perspective':'1000px','perspective-origin':'50% -'+视点+'px'});
+    sCSS(diban,{'transform':'rotateX(90deg) translateX(-1000px)  translateY(1000px)'})
+
+
+
+
+
+        // 键盘运动的核心
+        var key={
+            l:false,
+            r:false,
+            t:false,
+            b:false,
+            37:'l',
+            38:'t',
+            39:'r',
+            40:'b',
+            top :0,
+            left :0,
+        }
+
+        document.onkeydown=function(e){
+            var to=key[e.keyCode]
+            if(key[to])
+            return
+
+            key[to]=true
+            if(to=='l')key.toLeft=1
+            if(to=='r')key.toLeft=-1
+            if(to=='t')key.toTop=1
+            if(to=='b')key.toTop=-1
+        }
+        
+    
+        document.onkeyup=function(e){
+            var to=key[e.keyCode]
+            key[to]=false
+
+            if(key.l)key.toLeft=1
+            if(key.r)key.toLeft=-1
+
+            if(key.t)key.toTop=1
+            if(key.b)key.toTop=-1
+
+            if(key.l==false && key.r==false)
+            key.toLeft=0
+
+            if(key.t==false && key.b==false)
+            key.toTop=0
+        }
+
+    
+        
+        document.addEventListener('touchstart',function (e){
+            if(e.target.dataset.code){
+                e.target.classList.add('down')
+                document.onkeydown({keyCode:e.target.dataset.code})
+            }
+        })
+        
+        document.addEventListener('touchend',function (e){
+            if(e.target.dataset.code){
+                e.target.classList.remove('down')
+                document.onkeyup({keyCode:e.target.dataset.code})
+            }
+        })
+
+
+
+        // 动起来
+        function move(to){
+            
+            var ry=模块.ry%360;
+            if(ry>=180){ry-=360}
+            if(ry<-180){ry+=360}
+                
+            var speed=10
+        
+            var abs=Math.abs(Math.sin(Math.PI/180*ry)*speed);
+            var abs2=Math.abs(Math.cos(Math.PI/180*ry)*speed);
+            var cos=Math.cos(Math.PI/180*ry)*speed;
+            var sin=Math.sin(Math.PI/180*ry)*speed;
+            
+            
+            if(key.toTop==1){
+                if(ry<=0 &&ry >-90){
+                模块.tx+=abs
+                模块.tz+=cos
+                }
+                if(ry<90 && ry>0){
+                模块.tx-=sin
+                模块.tz+=abs2
+                }
+                if(ry<180 && ry>=90){
+                模块.tx-=abs
+                模块.tz+=cos
+                }
+                if(ry<=-90 && ry>=-180){
+                模块.tx+=abs
+                模块.tz+=cos
+                }
+            }
+            
+            
+            if(key.toTop==-1){
+                if(ry<=0 &&ry >-90){
+                模块.tx-=abs
+                模块.tz-=cos
+                }
+                if(ry<90 && ry>0){
+                模块.tx+=sin
+                模块.tz-=abs2
+                }
+                if(ry<180 && ry>=90){
+                模块.tx+=abs
+                模块.tz-=cos
+                }
+                if(ry<=-90 && ry>=-180){
+                模块.tx-=abs
+                模块.tz-=cos
+                }
+            }
+            
+            if(key.toLeft==1)
+            模块.ry-=2;
+        
+            if(key.toLeft==-1)
+            模块.ry+=2;
+            
+            
+            sCSS模块();
+
+            requestAnimationFrame(move)
+        }
+
+        move()
+    
+    
+       var yy=0
+        function sCSS模块(){
+            sCSS(模块,{'transform':'rotateY('+模块.ry+'deg) translateX('+模块.tx+'px) translateZ('+模块.tz+'px) translateY('+yy+'px) '})
+        }
+</script>
+
+
+</body>
+</html>
