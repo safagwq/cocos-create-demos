@@ -1,43 +1,41 @@
 {
+  "appKey": "",
+  "appSecret": "",
+  "encryptJs": true,
   "excludeScenes": [],
+  "fb-instant-games": {},
+  "includeAnySDK": false,
+  "includeSDKBox": false,
+  "inlineSpriteFrames": true,
+  "inlineSpriteFrames_native": true,
+  "jailbreakPlatform": false,
+  "md5Cache": false,
+  "mergeStartScene": false,
+  "oauthLoginServer": "",
+  "optimizeHotUpdate": false,
   "orientation": {
     "landscapeLeft": true,
     "landscapeRight": true,
     "portrait": false,
     "upsideDown": false
   },
-  "packageName": "org.cocos2d.helloworld",
-  "startScene": "2d2f792f-a40c-49bb-a189-ed176a246e49",
-  "title": "XXL",
-  "webOrientation": "portrait",
-  "includeSDKBox": false,
-  "inlineSpriteFrames": true,
-  "inlineSpriteFrames_native": true,
-  "mergeStartScene": false,
-  "optimizeHotUpdate": false,
-  "md5Cache": true,
-  "encryptJs": true,
-  "xxteaKey": "a28cb63c-0f3a-47",
-  "zipCompressJs": true,
-  "fb-instant-games": {},
-  "android": {
-    "packageName": "org.cocos2d.demo"
-  },
-  "ios": {
-    "packageName": "org.cocos2d.demo"
-  },
-  "mac": {
-    "packageName": "org.cocos2d.demo"
-  },
-  "win32": {},
-  "android-instant": {
+  "packageName": "org.cocos2d.XXL",
+  "privateKey": "",
+  "qqplay": {
     "REMOTE_SERVER_ROOT": "",
-    "host": "",
-    "packageName": "org.cocos2d.demo",
-    "pathPattern": "",
-    "recordPath": "",
-    "scheme": "https",
-    "skipRecord": false
+    "orientation": "portrait"
   },
-  "appBundle": false
+  "renderMode": "0",
+  "startScene": "61adfbbe-34c3-4be9-b270-0b8716403901",
+  "title": "XXL",
+  "webOrientation": "auto",
+  "wechatgame": {
+    "REMOTE_SERVER_ROOT": "",
+    "appid": "wx6ac3f5090a6b99c5",
+    "isSubdomain": false,
+    "orientation": "portrait",
+    "subContext": ""
+  },
+  "xxteaKey": "e87b5a4f-acfa-40",
+  "zipCompressJs": true
 }

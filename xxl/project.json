@@ -1,9 +1,4 @@
 {
-  "engine": "cocos2d-html5",
-  "packages": "packages",
-  "version": "2.3.3",
-  "name": "ts",
-  "uuid": "4ffe9c76-6db8-44c8-b8ab-fb4b1b7e67e9",
-  "id": "ea8e3db9-9109-4d5f-8946-523ad87c2bbf",
-  "isNew": false
+  "engine": "cocos-creator-js",
+  "packages": "packages"
 }
