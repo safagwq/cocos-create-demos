@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+
+    <style>
+        .world{position:absolute;  top:50%;  left:50%;  transform-style:preserve-3d;  perspective:1000px;  }
+        .world *{transform-style:preserve-3d;  }
+
+        .box{position:absolute;   top:0;  left:0;  height:100px;  width:100px;  background:#000;  transform:rotateY(0deg);  }
+
+        .card{position:absolute;   top:0;  left:0;  height:100px;  width:100px;  background:rgba(0,0,0,0.6);  transform-origin:50% 50% 300px;  transform:translate3d(0,0,-300px) rotateY(0deg);  }
+        .card:nth-child(1){transform:translate3d(0,0,-300px) rotateY(0deg);  }
+        .card:nth-child(2){transform:translate3d(0,0,-300px) rotateY(-30deg);  }
+        .card:nth-child(3){transform:translate3d(0,0,-300px) rotateY(-60deg);  }
+        .card:nth-child(4){transform:translate3d(0,0,-300px) rotateY(-90deg);  }
+        .card:nth-child(5){transform:translate3d(0,0,-300px) rotateY(-120deg);  }
+        .card:nth-child(6){transform:translate3d(0,0,-300px) rotateY(-150deg);  }
+        .card:nth-child(7){transform:translate3d(0,0,-300px) rotateY(-180deg);  }
+        .card:nth-child(8){transform:translate3d(0,0,-300px) rotateY(-210deg);  }
+        .card:nth-child(9){transform:translate3d(0,0,-300px) rotateY(-240deg);  }
+        .card:nth-child(10){transform:translate3d(0,0,-300px) rotateY(-270deg);  }
+        .card:nth-child(11){transform:translate3d(0,0,-300px) rotateY(-300deg);  }
+        .card:nth-child(12){transform:translate3d(0,0,-300px) rotateY(-330deg);  }
+    </style>
+<body>
+
+    <div class="world">
+        <div class="box">
+            <div class="card"></div>
+            <div class="card"></div>
+            <div class="card"></div>
+            <div class="card"></div>
+            <div class="card"></div>
+            <div class="card"></div>
+            <div class="card"></div>
+            <div class="card"></div>
+            <div class="card"></div>
+            <div class="card"></div>
+            <div class="card"></div>
+            <div class="card"></div>
+        </div>
+    </div>
+    <script>
+        
+        var box = document.querySelector('.box')
+        var cards = document.querySelectorAll('.card')
+        var angle = 0
+
+        function rotate() {
+            box.style.transform = 'rotateY('+ angle +'deg)'
+
+            if( angle % 30 == 0 ){
+
+                if( angle == 360 ){
+                    angle = 0
+                }
+
+                const targetCard = cards[ angle / 30 ]
+
+                if( targetCard.style.background != "rgba(255, 0, 0, 0.6)" ){
+                    targetCard.style.background = "rgba(255, 0, 0, 0.6)"
+                }
+                else{
+                    targetCard.style.background = "rgba(0, 0, 0, 0.6)"
+                }
+            }
+
+            angle+=1
+            setTimeout(rotate, 16)
+        }
+        setTimeout(rotate, 16)
+    </script>
+</body>
+
+</html>
